@@ -1,6 +1,6 @@
 # site-analytics-iac
 
-Infrastructure as code for a self-hosted web analytics service ([Umami](https://umami.is)) on Oracle Cloud's Always Free tier. One `terraform apply` and one `ansible-playbook` turn an empty cloud account into a hardened, monitored, backed-up HTTPS service. Every change after that goes through a CI/CD pipeline with a manual approval gate.
+Infrastructure as code for a self-hosted web analytics service ([Umami](https://umami.is)) on Oracle Cloud's Always Free tier. One `terraform apply` and one `ansible-playbook` turn an empty cloud account into a hardened, monitored, backed-up HTTPS service. Every configuration change after that goes through a CI/CD pipeline with a manual approval gate. Terraform is validated in CI but applied by hand, because it needs cloud credentials that never leave the maintainer's machine.
 
 The application stack (Umami + PostgreSQL + Caddy) lives in a separate repository, [`site-analytics`](https://github.com/panoskola/site-analytics). This repository provisions and operates everything around it.
 
@@ -50,7 +50,7 @@ On the VM, two Docker Compose projects run side by side:
 - **Dedicated deploy key.** GitHub Actions uses its own SSH key, separate from the maintainer's, so it can be revoked without side effects.
 - **Approval gate.** Deployments run in a GitHub environment (`production`) with a required reviewer. Secrets are environment secrets, available only to jobs that pass the gate and only on `main`.
 - **Hardened host.** SSH accepts keys only, root login is disabled, fail2ban is active, and the sshd configuration is validated with `sshd -t` before it is applied.
-- **Pinned versions.** Container images and the application version are pinned; nothing runs on `latest`.
+- **Pinned versions.** Container images, the application version and the CI tools (Ansible, ansible-lint, yamllint) are pinned; nothing runs on `latest`.
 
 ## Pipeline
 
