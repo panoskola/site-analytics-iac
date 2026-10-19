@@ -1,0 +1,18 @@
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+crash.log
+*.tfvars
+!terraform.tfvars.example
+
+# Keys and secrets
+*.pem
+*.key
+id_*
+.env
+
+# Ansible
+*.retry
+.vault_pass
