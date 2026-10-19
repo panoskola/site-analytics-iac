@@ -48,3 +48,37 @@ jobs:
 
       - name: validate
         run: terraform -chdir=terraform validate
+
+  deploy:
+    name: Deploy to production
+    needs: [ansible, terraform]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: production
+    concurrency: deploy-production
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Ansible
+        run: pip install ansible
+
+      - name: Prepare SSH, vault password and inventory
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          VAULT_PASSWORD: ${{ secrets.VAULT_PASSWORD }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H "$DEPLOY_HOST" >> ~/.ssh/known_hosts
+          printf '%s' "$VAULT_PASSWORD" > ~/.vault_pass
+          chmod 600 ~/.vault_pass
+          printf '[web]\niac-web ansible_host=%s ansible_user=ubuntu ansible_ssh_private_key_file=~/.ssh/deploy_key\n' "$DEPLOY_HOST" > ansible/inventory.ini
+
+      - name: Deploy
+        run: ansible-playbook ansible/site.yml
