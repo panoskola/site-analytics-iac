@@ -21,7 +21,7 @@ jobs:
           python-version: "3.12"
 
       - name: Install tools
-        run: pip install ansible ansible-lint yamllint
+        run: pip install ansible==14.5.0 ansible-lint==26.10.1 yamllint==1.38.0
 
       - name: Dummy vault password file (vault.yml is excluded from linting)
         run: echo "ci-dummy" > ~/.vault_pass
@@ -64,7 +64,7 @@ jobs:
           python-version: "3.12"
 
       - name: Install Ansible
-        run: pip install ansible
+        run: pip install ansible==14.5.0
 
       - name: Prepare SSH, vault password and inventory
         env:
