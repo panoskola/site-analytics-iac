@@ -1,0 +1,53 @@
+---
+- name: Create the monitoring directory
+  ansible.builtin.file:
+    path: "{{ monitoring_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Copy static monitoring configuration
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: "{{ monitoring_dir }}/{{ item }}"
+    owner: root
+    group: root
+    mode: "0644"
+  loop:
+    - alert-rules.yml
+    - alertmanager.yml
+    - blackbox.yml
+  notify: Restart monitoring stack
+
+- name: Render Prometheus config and Compose file
+  ansible.builtin.template:
+    src: "{{ item }}.j2"
+    dest: "{{ monitoring_dir }}/{{ item }}"
+    owner: root
+    group: root
+    mode: "0644"
+  loop:
+    - prometheus.yml
+    - docker-compose.yml
+  notify: Restart monitoring stack
+
+- name: Store the Discord webhook for Alertmanager
+  ansible.builtin.copy:
+    content: "{{ monitoring_discord_webhook }}"
+    dest: "{{ monitoring_dir }}/discord_webhook"
+    owner: "65534"
+    group: "65534"
+    mode: "0400"
+  no_log: true
+  notify: Restart monitoring stack
+
+- name: Start the monitoring stack
+  community.docker.docker_compose_v2:
+    project_src: "{{ monitoring_dir }}"
+    state: present
+  register: monitoring_compose
+  changed_when: >-
+    (monitoring_compose.actions | default([]))
+    | rejectattr('status', 'in', ['Waiting', 'Healthy', 'Running'])
+    | list | length > 0

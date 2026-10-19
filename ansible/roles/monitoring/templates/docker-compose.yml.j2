@@ -1,0 +1,42 @@
+services:
+  prometheus:
+    image: prom/prometheus:{{ monitoring_prometheus_version }}
+    restart: unless-stopped
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.retention.time=15d
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./alert-rules.yml:/etc/prometheus/alert-rules.yml:ro
+      - prometheus_data:/prometheus
+    ports:
+      - "127.0.0.1:9090:9090"
+
+  alertmanager:
+    image: prom/alertmanager:{{ monitoring_alertmanager_version }}
+    restart: unless-stopped
+    volumes:
+      - ./alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+      - ./discord_webhook:/etc/alertmanager/discord_webhook:ro
+      - alertmanager_data:/alertmanager
+    ports:
+      - "127.0.0.1:9093:9093"
+
+  blackbox:
+    image: prom/blackbox-exporter:{{ monitoring_blackbox_version }}
+    restart: unless-stopped
+    volumes:
+      - ./blackbox.yml:/etc/blackbox_exporter/config.yml:ro
+
+  node-exporter:
+    image: prom/node-exporter:{{ monitoring_node_exporter_version }}
+    restart: unless-stopped
+    pid: host
+    command:
+      - --path.rootfs=/host
+    volumes:
+      - /:/host:ro,rslave
+
+volumes:
+  prometheus_data:
+  alertmanager_data:

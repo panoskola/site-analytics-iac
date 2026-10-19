@@ -1,0 +1,7 @@
+---
+monitoring_dir: /opt/monitoring
+monitoring_prometheus_version: "v3.15.0"
+monitoring_alertmanager_version: "v0.34.1"
+monitoring_blackbox_version: "v0.29.0"
+monitoring_node_exporter_version: "v1.12.1"
+monitoring_probe_url: "https://{{ app_domain }}"
