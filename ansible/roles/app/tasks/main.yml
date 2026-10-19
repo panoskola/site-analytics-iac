@@ -34,6 +34,11 @@
     project_src: "{{ app_dir }}"
     state: present
     services: "{{ app_services | default(omit, true) }}"
+  register: app_compose
+  changed_when: >-
+    (app_compose.actions | default([]))
+    | rejectattr('status', 'in', ['Waiting', 'Healthy', 'Running'])
+    | list | length > 0
 
 - name: Nightly database backup
   ansible.builtin.cron:

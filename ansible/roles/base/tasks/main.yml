@@ -18,3 +18,9 @@
 - name: Set timezone to Europe/Athens
   community.general.timezone:
     name: Europe/Athens
+
+- name: Authorize the CI/CD deploy key for the ubuntu user
+  ansible.posix.authorized_key:
+    user: ubuntu
+    key: "{{ deploy_ssh_public_key }}"
+    state: present

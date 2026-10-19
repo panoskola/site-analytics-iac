@@ -5,3 +5,6 @@ app_postgres_password: "{{ vault_postgres_password }}"
 app_secret: "{{ vault_app_secret }}"
 app_duckdns_token: "{{ vault_duckdns_token }}"
 app_duckdns_cron: true
+
+# Public key used by GitHub Actions to deploy (private half lives only in GitHub secrets)
+deploy_ssh_public_key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBIpoLJGWJZD9FXyrwap2qSETCnFiWK4+hZFC/6MoFwm github-actions-deploy"
