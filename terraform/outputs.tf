@@ -12,3 +12,11 @@ output "ubuntu_image" {
   description = "Image the VM is built from"
   value       = data.oci_core_images.ubuntu.images[0].display_name
 }
+
+output "backup_bucket" {
+  value = oci_objectstorage_bucket.backups.name
+}
+
+output "object_storage_namespace" {
+  value = data.oci_objectstorage_namespace.ns.namespace
+}
