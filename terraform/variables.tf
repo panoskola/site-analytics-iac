@@ -30,3 +30,21 @@ variable "ssh_allowed_cidr" {
   type        = string
   default     = "0.0.0.0/0"
 }
+
+variable "ssh_public_key_path" {
+  description = "Path to the SSH public key installed on the VM"
+  type        = string
+  default     = "~/.ssh/oci_iac.pub"
+}
+
+variable "instance_ocpus" {
+  description = "OCPUs for the VM (Always Free total: 2 across all A1 VMs)"
+  type        = number
+  default     = 1
+}
+
+variable "instance_memory_gb" {
+  description = "Memory in GB for the VM (Always Free total: 12 across all A1 VMs)"
+  type        = number
+  default     = 6
+}
