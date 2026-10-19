@@ -24,3 +24,9 @@ variable "region" {
   type        = string
   default     = "eu-frankfurt-1"
 }
+
+variable "ssh_allowed_cidr" {
+  description = "CIDR allowed to reach SSH (port 22)"
+  type        = string
+  default     = "0.0.0.0/0"
+}
