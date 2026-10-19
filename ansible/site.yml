@@ -1,0 +1,8 @@
+---
+- name: Configure the web server
+  hosts: web
+  become: true
+
+  roles:
+    - base
+    - docker
