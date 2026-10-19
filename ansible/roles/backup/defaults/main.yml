@@ -1,0 +1,6 @@
+---
+backup_bucket: site-analytics-backups
+backup_namespace: frotp35vqgih
+backup_src_dir: /opt/site-analytics/backups
+backup_venv: /opt/oci-cli
+backup_webhook_file: /opt/monitoring/discord_webhook

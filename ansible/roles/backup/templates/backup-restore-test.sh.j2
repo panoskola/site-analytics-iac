@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+# Managed by Ansible. Restores the newest backup into a throwaway PostgreSQL and sanity-checks it.
+set -Eeuo pipefail
+
+workdir="$(mktemp -d)"
+cname="restore-test-$$"
+
+notify() {
+  curl -fsS -H 'Content-Type: application/json' \
+    -d "{\"content\":\"$1\"}" \
+    "$(cat {{ backup_webhook_file }})" || true
+}
+cleanup() {
+  docker rm -f "$cname" >/dev/null 2>&1 || true
+  rm -rf "$workdir"
+}
+trap cleanup EXIT
+trap 'notify "Restore test FAILED on $(hostname)"' ERR
+
+oci="{{ backup_venv }}/bin/oci"
+common=(--namespace-name {{ backup_namespace }} --bucket-name {{ backup_bucket }} --auth instance_principal)
+
+name="$("$oci" os object list "${common[@]}" --prefix umami/ --all \
+  --query 'max_by(data, &"time-created").name' --raw-output)"
+"$oci" os object get "${common[@]}" --name "$name" --file "$workdir/dump.sql.gz" >/dev/null
+
+docker run -d --name "$cname" \
+  -e POSTGRES_USER=umami -e POSTGRES_PASSWORD=restore-test -e POSTGRES_DB=umami \
+  postgres:16 >/dev/null
+for _ in $(seq 1 30); do
+  docker exec "$cname" pg_isready -U umami >/dev/null 2>&1 && break
+  sleep 2
+done
+sleep 8
+
+gunzip -c "$workdir/dump.sql.gz" \
+  | docker exec -i "$cname" psql -U umami -d umami -v ON_ERROR_STOP=1 -q >/dev/null
+
+sites="$(docker exec "$cname" psql -U umami -d umami -tAc 'select count(*) from website')"
+events="$(docker exec "$cname" psql -U umami -d umami -tAc 'select count(*) from website_event')"
+[ "$sites" -ge 1 ]
+
+msg="Restore test OK: $name -> $sites website(s), $events event(s)"
+echo "$(date -Is) $msg"
+notify "$msg"

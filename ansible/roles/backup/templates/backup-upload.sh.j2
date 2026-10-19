@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+# Managed by Ansible. Uploads the newest Umami dump to OCI Object Storage.
+set -euo pipefail
+
+notify_failure() {
+  curl -fsS -H 'Content-Type: application/json' \
+    -d '{"content":"Backup upload FAILED on '"$(hostname)"'"}' \
+    "$(cat {{ backup_webhook_file }})" || true
+}
+trap notify_failure ERR
+
+latest="$(ls -1t {{ backup_src_dir }}/umami-*.sql.gz | head -n 1)"
+
+{{ backup_venv }}/bin/oci os object put \
+  --namespace-name {{ backup_namespace }} \
+  --bucket-name {{ backup_bucket }} \
+  --file "$latest" \
+  --name "umami/$(basename "$latest")" \
+  --auth instance_principal \
+  --force
+
+echo "$(date -Is) uploaded $(basename "$latest")"

@@ -1,0 +1,46 @@
+---
+- name: Install Python venv support
+  ansible.builtin.apt:
+    name:
+      - python3-venv
+      - python3-pip
+    state: present
+
+- name: Install the OCI CLI in its own virtualenv
+  ansible.builtin.pip:
+    name: oci-cli
+    virtualenv: "{{ backup_venv }}"
+    virtualenv_command: python3 -m venv
+
+- name: Install the backup upload script
+  ansible.builtin.template:
+    src: backup-upload.sh.j2
+    dest: /usr/local/bin/backup-upload.sh
+    owner: root
+    group: root
+    mode: "0750"
+
+- name: Upload the nightly dump to Object Storage
+  ansible.builtin.cron:
+    name: Upload latest backup to Object Storage
+    minute: "30"
+    hour: "3"
+    user: root
+    job: /usr/local/bin/backup-upload.sh >> /var/log/backup-upload.log 2>&1
+
+- name: Install the restore test script
+  ansible.builtin.template:
+    src: backup-restore-test.sh.j2
+    dest: /usr/local/bin/backup-restore-test.sh
+    owner: root
+    group: root
+    mode: "0750"
+
+- name: Run the restore test weekly
+  ansible.builtin.cron:
+    name: Weekly backup restore test
+    minute: "30"
+    hour: "4"
+    weekday: "0"
+    user: root
+    job: /usr/local/bin/backup-restore-test.sh >> /var/log/backup-restore-test.log 2>&1
