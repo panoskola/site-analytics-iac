@@ -1,0 +1,51 @@
+---
+- name: Create application directory
+  ansible.builtin.file:
+    path: "{{ app_dir }}"
+    state: directory
+    mode: "0755"
+
+- name: Clone or update the site-analytics repository
+  ansible.builtin.git:
+    repo: "{{ app_repo }}"
+    dest: "{{ app_dir }}"
+    version: "{{ app_version }}"
+    update: true
+
+- name: Make helper scripts executable
+  ansible.builtin.file:
+    path: "{{ app_dir }}/scripts/{{ item }}"
+    mode: "0755"
+  loop:
+    - backup.sh
+    - duckdns-update.sh
+
+- name: Write the .env file from the vault secrets
+  ansible.builtin.template:
+    src: env.j2
+    dest: "{{ app_dir }}/.env"
+    owner: root
+    group: root
+    mode: "0600"
+  no_log: true
+
+- name: Start the Docker Compose stack
+  community.docker.docker_compose_v2:
+    project_src: "{{ app_dir }}"
+    state: present
+    services: "{{ app_services | default(omit, true) }}"
+
+- name: Nightly database backup
+  ansible.builtin.cron:
+    name: Umami database backup
+    minute: "15"
+    hour: "3"
+    job: "{{ app_dir }}/scripts/backup.sh"
+    state: "{{ 'present' if app_backup_cron else 'absent' }}"
+
+- name: Keep the DuckDNS hostname pointed at this server
+  ansible.builtin.cron:
+    name: DuckDNS IP update
+    minute: "*/30"
+    job: "{{ app_dir }}/scripts/duckdns-update.sh"
+    state: "{{ 'present' if app_duckdns_cron else 'absent' }}"

@@ -1,0 +1,12 @@
+---
+app_repo: https://github.com/panoskola/site-analytics.git
+app_version: main
+app_dir: /opt/site-analytics
+app_umami_version: "3.4.0"
+
+# Empty list = all services. Restrict during the cutover, e.g. ["db"].
+app_services: []
+
+# Enable only at cutover: it points the DuckDNS hostname at THIS server.
+app_duckdns_cron: false
+app_backup_cron: true

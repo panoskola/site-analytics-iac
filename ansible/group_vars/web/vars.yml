@@ -1,0 +1,7 @@
+---
+app_domain: panoskola-stats.duckdns.org
+app_duckdns_subdomain: panoskola-stats
+app_postgres_password: "{{ vault_postgres_password }}"
+app_secret: "{{ vault_app_secret }}"
+app_duckdns_token: "{{ vault_duckdns_token }}"
+app_duckdns_cron: true
