@@ -6,3 +6,5 @@
   roles:
     - base
     - docker
+    - firewall
+    - hardening

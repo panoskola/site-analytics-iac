@@ -1,0 +1,19 @@
+---
+- name: Install iptables persistence
+  ansible.builtin.apt:
+    name: iptables-persistent
+    state: present
+
+- name: Allow web ports before the REJECT rule
+  ansible.builtin.iptables:
+    chain: INPUT
+    protocol: tcp
+    destination_port: "{{ item | string }}"
+    ctstate:
+      - NEW
+    jump: ACCEPT
+    action: insert
+    rule_num: 5
+    comment: "Allow {{ item }}/tcp"
+  loop: "{{ firewall_allowed_tcp_ports }}"
+  notify: Save iptables rules
