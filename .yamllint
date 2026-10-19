@@ -1,0 +1,11 @@
+---
+extends: default
+rules:
+  line-length:
+    max: 200
+  truthy:
+    allowed-values: ["true", "false"]
+    check-keys: false
+
+ignore: |
+  ansible/group_vars/web/vault.yml

@@ -1,0 +1,4 @@
+---
+exclude_paths:
+  - ansible/group_vars/web/vault.yml
+  - .github/

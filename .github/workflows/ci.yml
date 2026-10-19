@@ -1,0 +1,50 @@
+---
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  ansible:
+    name: Ansible lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install tools
+        run: pip install ansible ansible-lint yamllint
+
+      - name: Dummy vault password file (vault.yml is excluded from linting)
+        run: echo "ci-dummy" > ~/.vault_pass
+
+      - name: yamllint
+        run: yamllint ansible .yamllint .ansible-lint .github
+
+      - name: ansible-lint
+        run: ansible-lint ansible/site.yml
+
+  terraform:
+    name: Terraform validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: hashicorp/setup-terraform@v3
+
+      - name: fmt
+        run: terraform -chdir=terraform fmt -check -recursive
+
+      - name: init (no backend)
+        run: terraform -chdir=terraform init -backend=false
+
+      - name: validate
+        run: terraform -chdir=terraform validate
