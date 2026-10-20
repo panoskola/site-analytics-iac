@@ -74,7 +74,7 @@ To open the Prometheus UI: `ssh -L 9090:localhost:9090 ubuntu@<server>` and brow
 ## Backups and restore
 
 - 03:15 daily: `pg_dump` of the Umami database to local disk (14 days kept).
-- 03:30 daily: the newest dump is uploaded to Object Storage; objects expire after 30 days. A failed upload posts to Discord.
+- 03:30 daily: the newest dump is uploaded to Object Storage; objects expire after 30 days. The result, success or failure, posts to Discord; a dump older than 26 h counts as a failure.
 - Sundays 04:30: the newest backup is downloaded, restored into a throwaway PostgreSQL container, sanity-checked, and the result is posted to Discord. A backup that has never been restored is not a backup.
 
 ### Disaster recovery runbook

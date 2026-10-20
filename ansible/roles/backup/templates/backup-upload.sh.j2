@@ -1,15 +1,21 @@
 #!/usr/bin/env bash
-# Managed by Ansible. Uploads the newest Umami dump to OCI Object Storage.
+# Managed by Ansible. Uploads the newest Umami dump to OCI Object Storage and reports the result to Discord.
 set -euo pipefail
 
-notify_failure() {
+notify() {
   curl -fsS -H 'Content-Type: application/json' \
-    -d '{"content":"Backup upload FAILED on '"$(hostname)"'"}' \
+    -d "{\"content\":\"$1\"}" \
     "$(cat {{ backup_webhook_file }})" || true
 }
-trap notify_failure ERR
+trap 'notify "Backup FAILED on $(hostname)"' ERR
 
 latest="$(ls -1t {{ backup_src_dir }}/umami-*.sql.gz | head -n 1)"
+
+# The dump runs at 03:15; a file older than 26 h means that run failed, so do not report the stale one as a success
+if [ -z "$(find "$latest" -mmin -1560)" ]; then
+  notify "Backup FAILED on $(hostname): newest dump $(basename "$latest") is older than 26 h"
+  exit 1
+fi
 
 {{ backup_venv }}/bin/oci os object put \
   --namespace-name {{ backup_namespace }} \
@@ -19,4 +25,6 @@ latest="$(ls -1t {{ backup_src_dir }}/umami-*.sql.gz | head -n 1)"
   --auth instance_principal \
   --force
 
-echo "$(date -Is) uploaded $(basename "$latest")"
+msg="Backup OK on $(hostname): uploaded $(basename "$latest") ($(du -h "$latest" | cut -f1))"
+echo "$(date -Is) $msg"
+notify "$msg"
