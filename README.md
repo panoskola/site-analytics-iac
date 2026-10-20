@@ -126,9 +126,9 @@ ansible-playbook ansible/site.yml
 ## Known limitations
 
 - Monitoring runs on the server it watches, so it cannot report a total outage. An external uptime check would cover that.
-- Terraform state is local. A remote backend (Object Storage) would be needed for a team.
+- Terraform state backend is Object Storage (`terraform/backend.tf`), but the state bucket and its Customer Secret Key are created by hand, outside this configuration.
 - SSH is reachable from the internet (keys only, fail2ban) so that GitHub-hosted runners can deploy. A self-hosted runner or a bastion would allow restricting it.
-- The CI deploy job learns the server's host key with `ssh-keyscan` on each run; pinning it as a secret would be stricter.
+- The deploy job trusts the host key in the `DEPLOY_HOST_KEY` secret (the `ssh-ed25519 AAAA...` part of `ssh-keyscan -t ed25519 <host>`). Rebuilding the VM changes the key, so update the secret then.
 - The OCI CLI inside the backup role is not version-pinned.
 
 ## Notes

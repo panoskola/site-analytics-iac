@@ -2,3 +2,7 @@ tenancy_ocid = "ocid1.tenancy.oc1..REPLACE_ME"
 user_ocid    = "ocid1.user.oc1..REPLACE_ME"
 fingerprint  = "aa:bb:cc:dd:ee:ff:00:11:22:33:44:55:66:77:88:99"
 region       = "eu-frankfurt-1"
+
+# Default is 0.0.0.0/0 so GitHub-hosted runners can deploy. Narrow it to your own IP
+# (e.g. "203.0.113.7/32") only if you deploy by hand.
+# ssh_allowed_cidr = "0.0.0.0/0"

@@ -33,4 +33,9 @@ resource "oci_core_instance" "web" {
   metadata = {
     ssh_authorized_keys = file(pathexpand(var.ssh_public_key_path))
   }
+
+  # A newer Ubuntu image must not destroy and recreate the VM on the next apply.
+  lifecycle {
+    ignore_changes = [source_details[0].source_id]
+  }
 }

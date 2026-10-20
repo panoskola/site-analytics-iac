@@ -6,6 +6,7 @@
 crash.log
 *.tfvars
 !terraform.tfvars.example
+backend.hcl
 
 # Keys and secrets
 *.pem
